@@ -1,0 +1,62 @@
+{% extends 'layout.html' %}
+
+{% block head %}
+{{ super() }}
+<script src="{{ url_for('static', filename='node_modules/socket.io-client/dist/socket.io.js') }}"></script>
+
+<script>
+  window.addEventListener('load', ev => {
+    function log(text, color) {
+      document.getElementById('log').innerHTML +=
+        `<span style="color:${color};">${text}</span><br>`;
+    }
+
+    function getCookie(name) {
+      // Split cookie string and get all individual name=value pairs in an array
+      let cookieArr = document.cookie.split(";");
+      
+      // Loop through the array elements
+      for(let i = 0; i < cookieArr.length; i++) {
+          let cookiePair = cookieArr[i].split("=");
+          
+          /* Removing whitespace at the beginning of the cookie name
+          and compare it with the given string */
+          if(name == cookiePair[0].trim()) {
+              // Decode the cookie value and return
+              return decodeURIComponent(cookiePair[1]);
+          }
+      }
+      // Return null if not found
+      return null;
+  }
+
+    const socket = io();
+
+    socket.on('response', msg => {
+      log(msg.data, 'red');
+    });
+
+    document.getElementById('form').addEventListener('submit', ev => {
+      ev.preventDefault();
+      let text = document.getElementById('text');
+      socket.emit('message', { data:  text.value });
+      text.value = '';
+      return false;
+    });
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col">
+    <h3 class="mb-5">Room: {{ room_id }}</h3>
+    <div id="log"></div>
+    <form id="form">
+      <label for="text">Input: </label>
+      <input type="text" id="text" autofocus>
+      <input type="submit" value="submit" name="submit">
+    </form>
+  </div>
+</div>
+{% endblock %}
